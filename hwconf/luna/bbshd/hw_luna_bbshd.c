@@ -17,7 +17,7 @@
     */
 
 #include "hw.h"
-#include "luna_display_serial.h"
+#include "../displays/luna_display_serial.h"
 #include "ch.h"
 #include "hal.h"
 #include "stm32f4xx_conf.h"
