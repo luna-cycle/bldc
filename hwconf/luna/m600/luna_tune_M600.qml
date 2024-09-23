@@ -1,6 +1,7 @@
 import QtQuick 2.7
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
+import Qt.labs.platform 1.1 as Platform
 import Qt.labs.settings 1.0 as QSettings
 import Vedder.vesc.vescinterface 1.0
 import Vedder.vesc.bleuart 1.0
@@ -25,6 +26,9 @@ Item {
     Component.onCompleted: {
         parentTabBar.visible = true
         parentTabBar.enabled = true
+        if (typeof VescIf.setShowFwUpdateAvailable === "function") {
+            VescIf.setShowFwUpdateAvailable(false) //called only if defined
+        }
         readSettings()
     }
 
@@ -1516,7 +1520,7 @@ ComboBox {
                                         color:{color=Utility.getAppHexColor("lightText")}
                                         id: rtLogFileText
                                         font.pointSize: 12
-                                        text: "./log"
+                                        text: Platform.StandardPaths.writableLocation(Platform.StandardPaths.DocumentsLocation) + "/logs"
 
                                         QSettings.Settings {
                                             property alias rtLog: rtLogFileText.text
@@ -1564,7 +1568,24 @@ ComboBox {
                                         }
                                     }
                                 }
-                            }                              
+                            }
+                            GroupBox {
+                                Layout.fillWidth: true
+                                Layout.columnSpan: 1
+                                
+                                RowLayout {
+                                    anchors.fill: parent
+                                    spacing: 5
+                                    Button {
+                                        text: "Set default directory"
+                                        Layout.fillWidth: true
+
+                                        onClicked: {
+                                            rtLogFileText.text = Platform.StandardPaths.writableLocation(Platform.StandardPaths.DocumentsLocation) + "/logs"
+                                        }
+                                    }
+                                }
+                            }
     }
     }                
                 DirectoryPicker {
