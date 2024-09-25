@@ -21,8 +21,54 @@ Item {
     property bool isHorizontal: width > height
     property bool scheduleConfWrite: false
     property bool fixedThrottle: false
+    property bool launching: true
     property var parentTabBar: parent.tabBarItem
-        
+
+    QSettings.Settings {
+        property alias rtLog: rtLogFileText.text
+        property alias rtLogEnable: rtLogEnBox.checked
+        property alias m600profileIndex: profilesBar.currentIndex
+
+        property alias m600streetTorque: streetTorqueSlider.value
+        property alias m600streetPas: streetPasSlider.value
+        property alias m600streetPower: streetPowerSlider.value
+        property alias m600streetSpeed: streetSpeedSlider.value
+        property alias m600streetThrottleResponse: streetThrottleResponseSlider.value
+        property alias m600streetThrottleExpo: streetThrottleExpoSlider.value
+        property alias m600streetPasResponseSlider: streetPasResponseSlider.value
+        property alias m600streetFW: streetFWSlider.value
+        property alias m600streetFixedThrottle: streetFixedThrottleCheckbox.checked
+
+        property alias m600trailTorque: trailTorqueSlider.value
+        property alias m600trailPas: trailPasSlider.value
+        property alias m600trailPower: trailPowerSlider.value
+        property alias m600trailSpeed: trailSpeedSlider.value
+        property alias m600trailThrottleResponse: trailThrottleResponseSlider.value
+        property alias m600trailThrottleExpo: trailThrottleExpoSlider.value 
+        property alias m600trailPasResponseSlider: streetPasResponseSlider.value
+        property alias m600trailFW: trailFWSlider.value
+        property alias m600trailFixedThrottle: trailFixedThrottleCheckbox.checked
+
+        property alias m600ludiTorque: torqueSlider.value
+        property alias m600ludiPas: pasSlider.value
+        property alias m600ludiPower: powerSlider.value
+        property alias m600ludiSpeed: speedSlider.value
+        property alias m600ludiThrottleResponse: throttleResponseSlider.value
+        property alias m600ludiThrottleExpo: throttleExpoSlider.value
+        property alias m600ludiPasResponseSlider: pasResponseSlider.value
+        property alias m600ludiFW: fWSlider.value
+        property alias m600ludiFixedThrottle: fixedThrottleCheckbox.checked
+
+        property alias m600battCurrentMaxSetting: battCurrBox.realValue
+        property alias m600battCellseSetting: battCellsBox.realValue
+        property alias m600overVoltageSetting: battOvervoltageBox.realValue
+        property alias m600underVoltageStartSetting: battUndervoltageStartBox.realValue
+        property alias m600underVoltageEndSetting: battUndervoltageEndBox.realValue
+        property alias m600wheelDiameterSetting: wheelDiameterBox.currentIndex
+        property alias m600encoderOffsetSetting: encoderOffsetBox.realValue
+        property alias m600motorDirectionSetting: motorDirectionBox.position      
+        }
+                                        
     Component.onCompleted: {
         parentTabBar.visible = true
         parentTabBar.enabled = true
@@ -1522,50 +1568,7 @@ ComboBox {
                                         font.pointSize: 12
                                         text: Platform.StandardPaths.writableLocation(Platform.StandardPaths.DocumentsLocation) + "/logs"
 
-                                        QSettings.Settings {
-                                            property alias rtLog: rtLogFileText.text
-                                            property alias rtLogEnable: rtLogEnBox.checked
-                                            property alias m600profileIndex: profilesBar.currentIndex
 
-                                            property alias m600streetTorque: streetTorqueSlider.value
-                                            property alias m600streetPas: streetPasSlider.value
-                                            property alias m600streetPower: streetPowerSlider.value
-                                            property alias m600streetSpeed: streetSpeedSlider.value
-                                            property alias m600streetThrottleResponse: streetThrottleResponseSlider.value
-                                            property alias m600streetThrottleExpo: streetThrottleExpoSlider.value
-                                            property alias m600streetPasResponseSlider: streetPasResponseSlider.value
-                                            property alias m600streetFW: streetFWSlider.value
-                                            property alias m600streetFixedThrottle: streetFixedThrottleCheckbox.checked
-
-                                            property alias m600trailTorque: trailTorqueSlider.value
-                                            property alias m600trailPas: trailPasSlider.value
-                                            property alias m600trailPower: trailPowerSlider.value
-                                            property alias m600trailSpeed: trailSpeedSlider.value
-                                            property alias m600trailThrottleResponse: trailThrottleResponseSlider.value
-                                            property alias m600trailThrottleExpo: trailThrottleExpoSlider.value 
-                                            property alias m600trailPasResponseSlider: streetPasResponseSlider.value
-                                            property alias m600trailFW: trailFWSlider.value
-                                            property alias m600trailFixedThrottle: trailFixedThrottleCheckbox.checked
-
-                                            property alias m600ludiTorque: torqueSlider.value
-                                            property alias m600ludiPas: pasSlider.value
-                                            property alias m600ludiPower: powerSlider.value
-                                            property alias m600ludiSpeed: speedSlider.value
-                                            property alias m600ludiThrottleResponse: throttleResponseSlider.value
-                                            property alias m600ludiThrottleExpo: throttleExpoSlider.value
-                                            property alias m600ludiPasResponseSlider: pasResponseSlider.value
-                                            property alias m600ludiFW: fWSlider.value
-                                            property alias m600ludiFixedThrottle: fixedThrottleCheckbox.checked
-
-                                            property alias m600battCurrentMaxSetting: battCurrBox.realValue
-                                            property alias m600battCellseSetting: battCellsBox.realValue
-                                            property alias m600overVoltageSetting: battOvervoltageBox.realValue
-                                            property alias m600underVoltageStartSetting: battUndervoltageStartBox.realValue
-                                            property alias m600underVoltageEndSetting: battUndervoltageEndBox.realValue
-                                            property alias m600wheelDiameterSetting: wheelDiameterBox.currentIndex
-                                            property alias m600encoderOffsetSetting: encoderOffsetBox.realValue
-                                            property alias m600motorDirectionSetting: motorDirectionBox.position      
-                                        }
                                     }
                                 }
                             }
@@ -1835,10 +1838,15 @@ function writeSettings() {
     }
     Timer {
         id: rtTimer
-        interval: 50
+        interval: 2000
         running: true
         repeat: true
         onTriggered: {
+            if(launching) {
+                readSettings()
+                launching = false
+            }
+        
             if (VescIf.isPortConnected()) {
                 if (VescIf.isRtLogOpen()) {
                     interval = 50
