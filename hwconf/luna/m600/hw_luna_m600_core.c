@@ -36,6 +36,7 @@
 
 #define EEPROM_ADDR_FIXED_THROTTLE_LEVEL	2
 #define EEPROM_ADDR_TORQUE_SENSOR_OFFSET	10
+#define EEPROM_ADDR_TUNE_PROFILE			14
 
 // Variables
 static volatile bool i2c_running = false;
@@ -45,6 +46,11 @@ static void terminal_cmd_set_m600_use_fixed_throttle_level(int argc, const char 
 static void terminal_cmd_m600_correct_encoder_offset(int argc, const char **argv);
 static void terminal_cmd_m600_get_torque_sensor_info(int argc, const char **argv);
 static void terminal_cmd_m600_calibrate_torque_sensor(int argc, const char **argv);
+static void terminal_cmd_m600_check_PAS_level(int argc, const char **argv);
+static void terminal_cmd_m600_get_ui_init_info(int argc, const char **argv);
+static void terminal_cmd_m600_write_tune(int argc, const char **argv);
+
+
 void hw_configure_torque_sensor(void);
 static void hw_override_pairing_done(void);
 
@@ -166,6 +172,25 @@ void hw_init_gpio(void) {
 			"Detect and store torque sensor offset",
 			0,
 			terminal_cmd_m600_calibrate_torque_sensor);
+
+	terminal_register_command_callback(
+			"check_pas_level",
+			"Returns the current PAS level",
+			0,
+			terminal_cmd_m600_check_PAS_level);
+
+	terminal_register_command_callback(
+			"ui_init_info",
+			"Returns info for the qml UI",
+			0,
+			terminal_cmd_m600_get_ui_init_info);
+
+	terminal_register_command_callback(
+			"write_tune_profile",
+			"Write the tune profile (street legal, trail or ludiclous)",
+			0,
+			terminal_cmd_m600_write_tune);
+
 
 	hw_override_pairing_done();
 	hw_configure_torque_sensor();
@@ -389,6 +414,7 @@ static void terminal_cmd_set_m600_use_fixed_throttle_level(int argc, const char 
 
 		// Store data in eeprom
 		conf_general_store_eeprom_var_hw(&use_fixed_throttle, EEPROM_ADDR_FIXED_THROTTLE_LEVEL);
+		commands_printf("Fixed throttle: %u",use_fixed_throttle.as_i32);
 	}
 	else {
 		commands_printf("1 argument required: 1 (fixed) or 0 (follow display level)");
@@ -451,6 +477,7 @@ static void terminal_cmd_m600_get_torque_sensor_info(int argc, const char **argv
 	commands_printf("Torque sensor upper range: %d", get_torque_sensor_upper_range());
 	commands_printf("Torque sensor deadband: %.2f (assistance starts at %d)",	(double)get_torque_sensor_deadband(),
 																				(int32_t)((1.0 + get_torque_sensor_deadband()) * (float)get_torque_sensor_lower_range()));
+
 	return;
 }
 
@@ -545,4 +572,92 @@ static void hw_override_pairing_done(void) {
 
 		mempools_free_appconf(appconf);
 	}
+}
+
+static void terminal_cmd_m600_check_PAS_level(int argc, const char **argv) {
+	(void)argc;
+	(void)argv;
+
+	switch (luna_canbus_get_pas_level()) {
+		case PAS_LEVEL_0: commands_printf("PAS level: 0"); break;
+		case PAS_LEVEL_1: commands_printf("PAS level: 1");break;
+		case PAS_LEVEL_2: commands_printf("PAS level: 2");break;
+		case PAS_LEVEL_3: commands_printf("PAS level: 3");break;
+		case PAS_LEVEL_4: commands_printf("PAS level: 4");break;
+		case PAS_LEVEL_5: commands_printf("PAS level: 5");break;
+		case PAS_LEVEL_6: commands_printf("PAS level: 6");break;
+		case PAS_LEVEL_7: commands_printf("PAS level: 7");break;
+		case PAS_LEVEL_8: commands_printf("PAS level: 8");break;
+		case PAS_LEVEL_9: commands_printf("PAS level: 9");break;
+		case PAS_LEVEL_WALK: commands_printf("PAS level: W"); break;
+		default: break;
+	}
+	return;
+}
+
+static void terminal_cmd_m600_write_tune(int argc, const char **argv) {
+	(void)argc;
+	(void)argv;
+	uint32_t profile_index;
+	eeprom_var profile_index_eeprom;
+	if( argc == 2 ) {
+
+		sscanf(argv[1], "%lu", &profile_index);
+		commands_printf("Tune profile: %u",profile_index);
+		profile_index_eeprom.as_u32 = profile_index;
+		conf_general_store_eeprom_var_hw(&profile_index_eeprom, EEPROM_ADDR_TUNE_PROFILE);
+	}
+	else {
+		commands_printf("argument required");
+	}
+	return;
+}
+
+static void terminal_cmd_m600_get_ui_init_info(int argc, const char **argv) {
+	(void)argc;
+	(void)argv;
+
+	commands_printf("Torque sensor output: %d", get_torque_sensor_output());
+	commands_printf("Torque sensor output (%%): %.2f", (double)luna_canbus_get_PAS_torque());
+	commands_printf("Torque sensor lower range: %d", get_torque_sensor_lower_range());
+	commands_printf("Torque sensor upper range: %d", get_torque_sensor_upper_range());
+	commands_printf("Torque sensor deadband: %.2f (assistance starts at %d)",	(double)get_torque_sensor_deadband(),
+																				(int32_t)((1.0 + get_torque_sensor_deadband()) * (float)get_torque_sensor_lower_range()));
+
+	switch (luna_canbus_get_pas_level()) {
+		case PAS_LEVEL_0: commands_printf("PAS level: 0"); break;
+		case PAS_LEVEL_1: commands_printf("PAS level: 1");break;
+		case PAS_LEVEL_2: commands_printf("PAS level: 2");break;
+		case PAS_LEVEL_3: commands_printf("PAS level: 3");break;
+		case PAS_LEVEL_4: commands_printf("PAS level: 4");break;
+		case PAS_LEVEL_5: commands_printf("PAS level: 5");break;
+		case PAS_LEVEL_6: commands_printf("PAS level: 6");break;
+		case PAS_LEVEL_7: commands_printf("PAS level: 7");break;
+		case PAS_LEVEL_8: commands_printf("PAS level: 8");break;
+		case PAS_LEVEL_9: commands_printf("PAS level: 9");break;
+		case PAS_LEVEL_WALK: commands_printf("PAS level: W"); break;
+		default: break;
+	}
+
+	eeprom_var tune_profile;
+	bool var_not_found = !conf_general_read_eeprom_var_hw(&tune_profile, EEPROM_ADDR_TUNE_PROFILE);
+
+	if(!var_not_found) {
+		commands_printf("Tune profile: %u",tune_profile.as_u32);
+	}else {
+		//write default
+		commands_printf("Tune profile: %u",0);
+	}
+
+	eeprom_var fixed_throttle;
+	var_not_found = !conf_general_read_eeprom_var_hw(&fixed_throttle, EEPROM_ADDR_FIXED_THROTTLE_LEVEL);
+
+	if(!var_not_found) {
+		commands_printf("Fixed throttle: %u",fixed_throttle.as_u32);
+	}else {
+		//write default
+		commands_printf("Fixed throttle: %u",0);
+	}
+
+	return;
 }

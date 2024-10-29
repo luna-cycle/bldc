@@ -1,4 +1,4 @@
-import QtQuick 2.7
+import Vedder.vesc.vescinterface 1.0;import "qrc:/mobile";import QtQuick 2.7
 import QtQuick.Controls 2.2
 import QtQuick.Layouts 1.3
 import Qt.labs.platform 1.1 as Platform
@@ -23,6 +23,8 @@ Item {
     property bool fixedThrottle: false
     property bool launching: true
     property var parentTabBar: parent.tabBarItem
+    property var tuneProfile: 0
+    property var voltPorc:0
 
     QSettings.Settings {
         property alias rtLog: rtLogFileText.text
@@ -117,13 +119,337 @@ Item {
             currentIndex: tabBar.currentIndex
             Layout.fillHeight: true
             Layout.fillWidth: true
-            clip: true              
-                                        Page {
-                        RtDataSetup {
-                            anchors.fill: parent
-                            updateData: swipeView.currentIndex == 0
+            clip: true
+
+            Page {
+            id:gaugePage
+            property int batteryPercentage:0
+            property int batteryVoltage:0
+            property var maxMotorCurrent:100
+            property var hintColor:"#76bd21"
+            property var hintSubColor:"#c9ea82"
+
+            SwipeView { // swipe down for vesc gauges
+                id: innerSwipeView
+                anchors.fill: parent
+                orientation: Qt.Vertical
+
+           Page{ // luna gauge
+            background: Rectangle {
+                opacity: 0.0
+                anchors.fill: parent
+            }
+            ColumnLayout{
+                anchors.topMargin: 2
+                anchors.bottomMargin: 1
+                anchors.fill: parent
+                clip: false
+                spacing: 5
+            RowLayout {
+                clip: false
+                spacing: 5
+                Text {
+                    id: pasText
+                    Layout.leftMargin:10
+                    text:"PAS 1"
+                    color: {color=Utility.getAppHexColor("lightText")}
+                    font.pixelSize: 30
+                    font.bold: true
+                }
+                Item{Layout.fillWidth:true}
+                Text {
+                    id:profileText
+                    text: "TRAIL"
+                    color:gaugePage.hintColor
+                    font.pixelSize:32
+                    font.bold:true
+                    anchors.centerIn:parent
+                }
+                Item{Layout.fillWidth:true}
+                Item{
+                id: batteryIndicator
+                    Layout.preferredWidth:40
+                    Layout.rightMargin:25
+                Image {
+                    id:img
+                    anchors.centerIn: parent
+                    width:batteryIndicator.width+25
+                    fillMode:Image.PreserveAspectFit
+                    horizontalAlignment: Image.AlignHCenter
+                    source:"qrc"+Utility.getThemePath()+"icons/icons8-battery-100.png"
+                    smooth:true
+                    rotation:90
+                }
+                Button {
+                    text: ""
+                    anchors.centerIn: parent
+                    width:batteryIndicator.width+25
+                    background: Rectangle {
+                        opacity: 0.0
+                        color: "transparent"
+                        }
+                    onClicked: {
+                        if(voltPorc == 0){
+                            voltPorc=1
+                        }else{
+                            voltPorc=0
                         }
                     }
+                }
+                Rectangle {
+                    id: batBack
+                    width: 45
+                    height: 25
+                    radius: 2
+                    anchors.horizontalCenter: parent.left
+                    anchors.verticalCenter: parent.top
+                    anchors.horizontalCenterOffset: 19
+
+                }
+                Text {
+                    id:batteryText
+                    text:gaugePage.batteryVoltage+"V"
+                    font.pixelSize:23
+                    font.bold: true
+                    color: {color=Utility.getAppHexColor("black")}
+                    anchors.centerIn: batBack
+                    anchors.horizontalCenterOffset: -1
+                }
+            }
+                        }
+RowLayout {
+           clip: false
+           spacing: 5
+    Rectangle {
+        id: speedBar
+        Layout.leftMargin: 20
+        Layout.rightMargin: 20
+        Layout.fillWidth: true
+        height: 8
+        color: {color=Utility.getAppHexColor("disabledText")}
+        property real progress:0.0
+
+        Rectangle {
+            id: fillBar
+            width: speedBar.width*speedBar.progress
+            height: speedBar.height
+            color: {color=Utility.getAppHexColor("lightText")}
+            anchors.left:speedBar.left
+        }
+    }
+
+}
+        Item {
+            id: arcProgressBar
+            Layout.fillWidth:true
+            Layout.fillHeight:true
+            width: 350
+            height: 350
+            property real progress:1
+            property real progressMotor:0
+            property real maximumValue:1
+            property real minimumValue:0
+            Canvas {
+                id: canvas
+                anchors.fill: parent
+                antialiasing:true
+
+                onPaint: {
+                    var ctx=getContext("2d");
+                    ctx.reset();
+                    var lineWidth=40;
+                    var centerX=width*0.45;
+                    var centerY=height/2;
+                    var radius=Math.min(width,height)*0.8/2-lineWidth/2;
+                    var startAngle=Math.PI/2;
+                    var endAngle=startAngle+Math.max((arcProgressBar.progress-0.24)/(1-0.24)*1.2*Math.PI,0);
+                    var endAngleMotor=startAngle+Math.max((arcProgressBar.progressMotor-0.24)/(1-0.24)*1.2*Math.PI,0);
+                    var lineWidth=40;
+
+                    ctx.beginPath();
+                    ctx.arc(centerX,centerY,radius,startAngle,1.7*Math.PI,false);
+                    ctx.lineWidth=lineWidth;
+                    ctx.strokeStyle=Utility.getAppHexColor("disabledText");
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(centerX,centerY,radius,startAngle,endAngle,false);
+                    ctx.lineWidth=lineWidth;
+                    ctx.strokeStyle=gaugePage.hintSubColor;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(centerX,centerY,radius,startAngle,endAngleMotor,false);
+                    ctx.lineWidth=lineWidth;
+                    ctx.strokeStyle=gaugePage.hintColor;
+                    ctx.stroke();
+
+                    var linearBarX=centerX+5;
+                    var linearBarY=centerY+radius-lineWidth/2;
+                    var linearBarWidth=radius*1.35;
+                    var linearBarHeight=lineWidth;
+                    ctx.fillStyle=Utility.getAppHexColor("disabledText");
+                    ctx.fillRect(linearBarX,linearBarY,linearBarWidth,linearBarHeight);
+
+                    var linearBarFillWidth=Math.min(arcProgressBar.progress*linearBarWidth/0.24,linearBarWidth);
+                    var motorBarFillWidth=Math.min(arcProgressBar.progressMotor*linearBarWidth/0.24,linearBarWidth);
+
+                    ctx.fillStyle=gaugePage.hintSubColor;
+                    ctx.fillRect(linearBarX+linearBarWidth-linearBarFillWidth,linearBarY,linearBarFillWidth,linearBarHeight);
+                    ctx.fillStyle=gaugePage.hintColor;
+                    ctx.fillRect(linearBarX+linearBarWidth-motorBarFillWidth,linearBarY,motorBarFillWidth,linearBarHeight);
+                }
+            }
+
+    Item {
+    id: speedDisplay
+    width: mainText.width + decimalText.width
+    height: mainText.height
+    Layout.fillHeight: true
+    Layout.fillWidth: true
+    anchors.centerIn: parent
+    anchors.horizontalCenterOffset: 25
+    property real value:0
+    property int mainFontSize:Math.min(arcProgressBar.width,arcProgressBar.height)*0.28
+    property int decimalFontSize:mainFontSize*0.75
+
+    Row {
+        anchors.centerIn: parent
+        spacing: 0
+
+        Text {
+            id: mainText
+            text: Math.floor(speedDisplay.value)+"."
+            font.pixelSize:speedDisplay.mainFontSize
+            font.bold: true
+            color: {color=Utility.getAppHexColor("lightText")}
+            anchors.bottom: parent.bottom
+
+        }
+        Text {
+            id: decimalText
+            text: Math.round((speedDisplay.value - Math.floor(speedDisplay.value)) * 10)
+            font.pixelSize: speedDisplay.decimalFontSize
+            font.bold: true
+            color: {color=Utility.getAppHexColor("lightText")}
+            anchors.baseline: mainText.baseline
+        }
+        Text {
+            id: speedUnitsText
+            text: VescIf.useImperialUnits() ? " mph" : " km/h"
+            color: {color=Utility.getAppHexColor("disabledText")}
+            font.pixelSize: 30
+            font.bold:true
+            anchors.baseline: mainText.baseline
+        }
+    }
+}
+}
+
+          Item{Layout.fillHeight:true}
+                            RowLayout {
+                            clip: false
+                            spacing: 5
+                            Layout.bottomMargin: 10
+
+                            Text {
+                                id: tempText
+                                Layout.leftMargin: 20
+                                text: "Motor: --°C"
+                                color: {color=Utility.getAppHexColor("lightText")}
+                                font.pixelSize:20
+                            }
+                            Item{Layout.fillWidth:true}
+
+                            Text {
+                                id: odoText
+                                Layout.rightMargin: 20
+                                text:  VescIf.useImperialUnits() ? "0 mi" : "0 km"
+                                color: {color=Utility.getAppHexColor("lightText")}
+                                font.pixelSize:22
+                            }
+                          }
+                        }
+
+         Connections {
+            target: mCommands
+
+            function onPrintReceived(str) {
+                if (str.startsWith("PAS level: ")) {
+                    if(str.slice("PAS level:".length) == " W") {
+                        pasText.text="WALK"
+                    }else{
+                        pasText.text= "PAS"+str.slice("PAS level:".length);
+                    }
+                }
+                if (str.startsWith("Tune profile: ")) {
+                    tuneProfile= str.slice("Tune profile: ".length);
+                }
+                if (str.startsWith("Fixed throttle: ")) {
+                    var auxThrottle = str.slice("Fixed throttle: ".length)
+                    if(auxThrottle == 0){
+                         auxThrottle = false;
+                    }else{
+                         auxThrottle = true;
+                    }
+                    switch(tuneProfile){
+                        case "0": streetFixedThrottleCheckbox.checked = auxThrottle; break;
+                        case "1": trailFixedThrottleCheckbox.checked = auxThrottle; break;
+                        case "2": fixedThrottleCheckbox.checked = auxThrottle; break;
+                        default: break;
+                    }
+                }
+            }
+
+            function onValuesSetupReceived(values){
+
+            arcProgressBar.progress=gaugePage.maxMotorCurrent/100
+            if(values.current_motor > 0)
+                {arcProgressBar.progressMotor=values.current_motor/gaugePage.maxMotorCurrent}
+            else
+                {arcProgressBar.progressMotor=0}
+
+            VescIf.useImperialUnits() ? (speedDisplay.value=values.speed*2.23) : (speedDisplay.value=values.speed*3.6)
+            VescIf.useImperialUnits() ? (speedUnitsText.text = " mph") : (speedUnitsText.text = " km/h")
+            if(values.speed*3.6/32 > 1){speedBar.progress = 1}else{speedBar.progress=values.speed*3.6/32}
+            tempText.text="Motor: "+Math.round(values.temp_motor)+"°C";
+
+            if(values.temp_motor<95.0)
+                {tempText.color=Utility.getAppHexColor("lightText")}
+            else
+                {
+                if(values.temp_motor >= 95.0 && values.temp_motor < 120.0)
+                    {tempText.color="Orange"}
+                else
+                    {tempText.color="Red"}
+                }
+            voltPorc ? gaugePage.batteryVoltage=values.v_in : gaugePage.batteryVoltage=values.battery_level*100.0
+            voltPorc ? batteryText.text = gaugePage.batteryVoltage + "V" : batteryText.text = gaugePage.batteryVoltage + "%"
+            if(values.battery_level<0.15)
+                {batBack.color=Utility.getAppHexColor("red")}
+            else
+                {
+                if(values.battery_level >= 0.15 && values.battery_level < 0.30)
+                    {batBack.color=Utility.getAppHexColor("orange")}
+                else
+                   {batBack.color=Utility.getAppHexColor("green")}
+                }
+            VescIf.useImperialUnits() ? (odoText.text=Math.round(values.odometer/1609)+" mi") : (odoText.text=Math.round(values.odometer/1000)+" km")
+            if(tuneProfile==0){profileText.text="STREET";gaugePage.hintColor="royalblue";gaugePage.hintSubColor="#ccccff"}
+            if(tuneProfile==1){profileText.text="TRAIL";gaugePage.hintColor="#76bd21";gaugePage.hintSubColor="#c9ea82";}
+            if(tuneProfile==2){profileText.text="LUDI";gaugePage.hintColor="indianred";gaugePage.hintSubColor="#ffcccc"}
+            canvas.requestPaint();
+            }
+    }
+}
+           Page{
+                RtDataSetup {
+                    anchors.fill: parent
+                    updateData: swipeView.currentIndex == 0
+                }
+           }
+            }// close vertical swipe
+            }// close gauges page
             Page {
                 background: Rectangle {
                     opacity: 0.0
@@ -477,6 +803,17 @@ Item {
                                                 }
                                             }
                                         }
+
+                                        Button {
+                                            text: "Restore street legal\ndefaults"
+                                            Layout.columnSpan: 2
+                                            Layout.preferredWidth: 200
+                                            Layout.preferredHeight: 80
+                                            Layout.fillWidth: true
+                                            onClicked: {
+                                               restoreTuneSettings()
+                                            }
+                                        }
                                     }
                                 }
                             }                        
@@ -783,7 +1120,17 @@ Item {
                                                     Layout.fillWidth: true
                                                 }
                                             }
-                                        }                                        
+                                        }
+                                        Button {
+                                            text: "Restore trail\ndefaults"
+                                            Layout.columnSpan: 2
+                                            Layout.preferredWidth: 200
+                                            Layout.preferredHeight: 80
+                                            Layout.fillWidth: true
+                                            onClicked: {
+                                               restoreTuneSettings()
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1090,7 +1437,17 @@ Item {
                                                     Layout.fillWidth: true
                                                 }
                                             }
-                                        }                                        
+                                        }
+                                        Button {
+                                            text: "Restore ludicrous\ndefaults"
+                                            Layout.columnSpan: 2
+                                            Layout.preferredWidth: 200
+                                            Layout.preferredHeight: 80
+                                            Layout.fillWidth: true
+                                            onClicked: {
+                                               restoreTuneSettings()
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1618,7 +1975,45 @@ ComboBox {
             // Support    
         }
     }
+function restoreTuneSettings() {
 
+    // restore street legal
+    if(profilesBar.currentIndex == 0){
+        streetTorqueSlider.value = 30
+        streetPasSlider.value = 20
+        streetPowerSlider.value = 500
+        streetSpeedSlider.value = 20
+        streetThrottleResponseSlider.value = 0.9
+        streetThrottleExpoSlider.value = 100
+        streetPasResponseSlider.value = 0.8
+        streetFWSlider.value = 2
+        streetFixedThrottleCheckbox.checked = false
+    }
+    // restore trial
+    if(profilesBar.currentIndex == 1){
+        trailTorqueSlider.value = 70
+        trailPasSlider.value = 60
+        trailPowerSlider.value = 2000
+        trailSpeedSlider.value = 60
+        trailThrottleResponseSlider.value = 0.4
+        trailThrottleExpoSlider.value = 100
+        trailPasResponseSlider.value = 0.6
+        trailFWSlider.value = 7
+        trailFixedThrottleCheckbox.checked = false
+    }
+     // restore ludi
+    if(profilesBar.currentIndex == 2){
+        torqueSlider.value = 100
+        pasSlider.value = 90
+        powerSlider.value = 2500
+        speedSlider.value = 60
+        throttleResponseSlider.value = 0.3
+        throttleExpoSlider.value = 95
+        pasResponseSlider.value = 0.3
+        fWSlider.value = 7
+        fixedThrottleCheckbox.checked = false
+    }
+}
 function readSettings() {
     mCommands.getMcconf()
     mCommands.getAppConf()
@@ -1643,7 +2038,7 @@ function readSettings() {
     var fixedThrottle
     var motorDirection = mMcConf.getParamBool("m_invert_direction")
 
-    if ((power == streetPowerSlider.value) && (torque == streetTorqueSlider.value)) {
+   if(tuneProfile == 0){
         profilesBar.setCurrentIndex(0)
         streetTorqueSlider.value = torque
         streetPowerSlider.value = power                                                                
@@ -1654,7 +2049,8 @@ function readSettings() {
         streetFWSlider.value = fieldWeak
         streetThrottleExpoSlider.value = throttleExpo
         }
-    if ((power == trailPowerSlider.value) && (torque == trailTorqueSlider.value)) {
+
+    if(tuneProfile == 1){
         profilesBar.setCurrentIndex(1)
         trailTorqueSlider.value = torque
         trailPowerSlider.value = power                                                                
@@ -1665,7 +2061,8 @@ function readSettings() {
         trailFWSlider.value = fieldWeak
         trailThrottleExpoSlider.value = throttleExpo
         }
-    if ((power == powerSlider.value) && (torque == torqueSlider.value)) {    
+
+     if(tuneProfile == 2){
         profilesBar.setCurrentIndex(2)
         torqueSlider.value = torque
         powerSlider.value = power                                                               
@@ -1698,7 +2095,9 @@ function readSettings() {
         encoderOffsetBox.suffix ="°"  
         encoderOffsetButton.background.color = Utility.getAppHexColor("lightBackground");
     }
-    mCommands.sendTerminalCmd("torque_sensor")
+
+    mCommands.sendTerminalCmd("ui_init_info")
+
 }
 
 function writeSettings() {
@@ -1716,6 +2115,8 @@ function writeSettings() {
         mAppConf.updateParamDouble("app_pas_conf.ramp_time_neg", streetPasResponseSlider.value / 2)                                                                        
         mAppConf.updateParamDouble("app_adc_conf.throttle_exp", (100.0 - streetThrottleExpoSlider.value) / -20.0)
         fixedThrottle = streetFixedThrottleCheckbox.checked
+        mCommands.sendTerminalCmd("write_tune_profile 0")
+
     }
     if(profilesBar.currentIndex == 1) {
         mMcConf.updateParamDouble("l_current_max", trailTorqueSlider.value)
@@ -1728,6 +2129,7 @@ function writeSettings() {
         mAppConf.updateParamDouble("app_pas_conf.ramp_time_neg", trailPasResponseSlider.value / 2)                                    
         mAppConf.updateParamDouble("app_adc_conf.throttle_exp", (100.0 - trailThrottleExpoSlider.value) / -20.0)
         fixedThrottle = trailFixedThrottleCheckbox.checked
+        mCommands.sendTerminalCmd("write_tune_profile 1")
         }
     if(profilesBar.currentIndex == 2) {
         mMcConf.updateParamDouble("l_current_max", torqueSlider.value)
@@ -1740,6 +2142,7 @@ function writeSettings() {
         mAppConf.updateParamDouble("app_pas_conf.ramp_time_neg", pasResponseSlider.value / 8 + 0.15)
         mAppConf.updateParamDouble("app_adc_conf.throttle_exp", (100.0 - throttleExpoSlider.value) / -20.0)
         fixedThrottle = fixedThrottleCheckbox.checked
+        mCommands.sendTerminalCmd("write_tune_profile 2")
     }
     mMcConf.updateParamDouble("l_in_current_max", battCurrBox.realValue)
     mMcConf.updateParamInt("si_battery_cells", battCellsBox.realValue)
@@ -1833,7 +2236,6 @@ function writeSettings() {
                     }
                 }
             }
-            //timeText.text=Qt.formatTime(new Date(),"hh:mm")
         }
     }
     Timer {

@@ -41,20 +41,6 @@
 #define LUNA_TORQUE_SENSOR_DEADBAND			0.03
 
 typedef enum {
-	PAS_LEVEL_0 = 0x00,
-	PAS_LEVEL_1 = 0x01,
-	PAS_LEVEL_2 = 0x0B,
-	PAS_LEVEL_3 = 0x0C,
-	PAS_LEVEL_4 = 0x0D,
-	PAS_LEVEL_5 = 0x02,
-	PAS_LEVEL_6 = 0x15,
-	PAS_LEVEL_7 = 0x16,
-	PAS_LEVEL_8 = 0x17,
-	PAS_LEVEL_9 = 0x03,
-	PAS_LEVEL_WALK = 0x06,
-} LUNA_PAS_LEVEL;
-
-typedef enum {
 	WRITE_LOW_BATTERY_ERROR = 0x00,
 	WRITE_MAX_CURRENT_ERROR = 0x01,
 	WRITE_ASSIST_LEVEL_ERROR = 0x02,
@@ -327,6 +313,7 @@ static void set_assist_level(uint8_t assist_code) {
 	if(current_scale == 0.0) {
 		mcconf->l_current_max_scale = current_scale;
 	}
+
 }
 
 
@@ -615,6 +602,22 @@ static bool can_bus_rx_callback(uint32_t id, uint8_t *data, uint8_t len) {
 				used_data = true;
 
 				if(check_assist_level(data[1])){
+					if(data[1] != luna_settings.assist_code){
+						switch (data[1]) {
+							case PAS_LEVEL_0: commands_printf("PAS level: 0"); break;
+							case PAS_LEVEL_1: commands_printf("PAS level: 1"); break;
+							case PAS_LEVEL_2: commands_printf("PAS level: 2"); break;
+							case PAS_LEVEL_3: commands_printf("PAS level: 3"); break;
+							case PAS_LEVEL_4: commands_printf("PAS level: 4"); break;
+							case PAS_LEVEL_5: commands_printf("PAS level: 5"); break;
+							case PAS_LEVEL_6: commands_printf("PAS level: 6"); break;
+							case PAS_LEVEL_7: commands_printf("PAS level: 7"); break;
+							case PAS_LEVEL_8: commands_printf("PAS level: 8"); break;
+							case PAS_LEVEL_9: commands_printf("PAS level: 9"); break;
+							case PAS_LEVEL_WALK: commands_printf("PAS level: W"); break;
+							default: break;
+						}
+					}
 					luna_settings.pas_level = data[1];
 					set_assist_level(luna_settings.pas_level);
 				}
