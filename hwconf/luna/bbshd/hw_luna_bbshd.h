@@ -22,8 +22,14 @@
 #define HW_LUNA_BBSHD_H_
 
 #define FW_NAME				"2023.08.22"
-#define HW_NAME				"LUNA_BBSHD"
+
+#ifdef bbshd_Rev4
+#define HW_NAME				"LUNA_BBSHD_REV4"
+#include "mcconf_luna_bbshd_Rev4.h"
+#else
 #include "mcconf_luna_bbshd.h"
+#define HW_NAME				"LUNA_BBSHD"
+#endif
 #include "appconf_luna_bbshd.h"
 
 #define QMLUI_SOURCE_HW		"hwconf/luna/bbshd/qmlui_luna_bbshd.c"
@@ -245,6 +251,17 @@
 #define HW_DEAD_TIME_NSEC		460.0
 
 // Setting limits
+#ifdef bbshd_Rev4
+#define HW_LIM_CURRENT			-200.0, 200.0
+#define HW_LIM_CURRENT_IN		-150.0, 150.0
+#define HW_LIM_CURRENT_ABS		0.0, 250.0
+#define HW_LIM_VIN				30.0, 86.0
+#define HW_LIM_ERPM				-26e3, 26e3
+#define HW_LIM_DUTY_MIN			0.0, 0.1
+#define HW_LIM_DUTY_MAX			0.0, 0.95
+#define HW_LIM_TEMP_FET			-40.0, 90.0
+#define HW_LIM_FOC_CTRL_LOOP_FREQ	29999.0, 30001.0
+#else
 #define HW_LIM_CURRENT			-200.0, 200.0
 #define HW_LIM_CURRENT_IN		-150.0, 150.0
 #define HW_LIM_CURRENT_ABS		0.0, 230.0
@@ -254,7 +271,7 @@
 #define HW_LIM_DUTY_MAX			0.0, 0.95
 #define HW_LIM_TEMP_FET			-40.0, 90.0
 #define HW_LIM_FOC_CTRL_LOOP_FREQ	49999.0, 50001.0
-
+#endif
 #define HW_GATE_DRIVER_SUPPLY_MIN_VOLTAGE	11.0
 #define HW_GATE_DRIVER_SUPPLY_MAX_VOLTAGE	13.0
 
