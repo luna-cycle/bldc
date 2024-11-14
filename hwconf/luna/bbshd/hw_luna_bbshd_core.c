@@ -668,6 +668,8 @@ static void terminal_cmd_bbshd_get_ui_init_info(int argc, const char **argv) {
 		commands_printf("Fixed throttle: %u",fixed_throttle.as_u32);
 	}else {
 		//write default
+		tune_profile.as_u32 = 0;
+        conf_general_store_eeprom_var_hw(&tune_profile, EEPROM_ADDR_FIXED_THROTTLE_LEVEL);
 		commands_printf("Fixed throttle: %u",0);
 	}
 	return;
