@@ -22,6 +22,21 @@
 
 #include "stdint.h"
 
+typedef enum {
+	PAS_LEVEL_0 = 0x00,
+	PAS_LEVEL_1 = 0x01,
+	PAS_LEVEL_2 = 0x0B,
+	PAS_LEVEL_3 = 0x0C,
+	PAS_LEVEL_4 = 0x0D,
+	PAS_LEVEL_5 = 0x02,
+	PAS_LEVEL_6 = 0x15,
+	PAS_LEVEL_7 = 0x16,
+	PAS_LEVEL_8 = 0x17,
+	PAS_LEVEL_9 = 0x03,
+	PAS_LEVEL_WALK = 0x06,
+} LUNA_PAS_LEVEL;
+
 void luna_display_serial_start(int8_t initial_level);
+LUNA_PAS_LEVEL luna_serial_get_pas_level(void);
 
 #endif /* APP_LUNA_DISPLAY_SERIAL_H_ */

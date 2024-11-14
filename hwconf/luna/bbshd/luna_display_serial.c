@@ -59,20 +59,6 @@
 #define LUNA_TX_SERIAL_BUFFER_SIZE	32
 
 typedef enum {
-	PAS_LEVEL_0 = 0x00,
-	PAS_LEVEL_1 = 0x01,
-	PAS_LEVEL_2 = 0x0B,
-	PAS_LEVEL_3 = 0x0C,
-	PAS_LEVEL_4 = 0x0D,
-	PAS_LEVEL_5 = 0x02,
-	PAS_LEVEL_6 = 0x15,
-	PAS_LEVEL_7 = 0x16,
-	PAS_LEVEL_8 = 0x17,
-	PAS_LEVEL_9 = 0x03,
-	PAS_LEVEL_WALK = 0x06,
-} LUNA_PAS_LEVEL;
-
-typedef enum {
 	WRITE_LOW_BATTERY_ERROR = 0x00,
 	WRITE_MAX_CURRENT_ERROR = 0x01,
 	WRITE_ASSIST_LEVEL_ERROR = 0x02,
@@ -284,6 +270,22 @@ static void serial_display_byte_process(unsigned char byte) {
 							checksum(serial_buffer.data + rd_ptr, 3) ) {
 
 							if(check_assist_level(serial_buffer.data[rd_ptr + 2])){
+								if(serial_buffer.data[rd_ptr + 2] != pas_level){
+									switch (serial_buffer.data[rd_ptr + 2]) {
+										case PAS_LEVEL_0: commands_printf("PAS level: 0"); break;
+										case PAS_LEVEL_1: commands_printf("PAS level: 1"); break;
+										case PAS_LEVEL_2: commands_printf("PAS level: 1"); break;
+										case PAS_LEVEL_3: commands_printf("PAS level: 2"); break;
+										case PAS_LEVEL_4: commands_printf("PAS level: 2"); break;
+										case PAS_LEVEL_5: commands_printf("PAS level: 3"); break;
+										case PAS_LEVEL_6: commands_printf("PAS level: 3"); break;
+										case PAS_LEVEL_7: commands_printf("PAS level: 4"); break;
+										case PAS_LEVEL_8: commands_printf("PAS level: 4"); break;
+										case PAS_LEVEL_9: commands_printf("PAS level: 5"); break;
+										case PAS_LEVEL_WALK: commands_printf("PAS level: W"); break;
+										default: break;
+									}
+								}
 								pas_level = serial_buffer.data[rd_ptr + 2];
 								set_assist_level(pas_level);
 							}
@@ -529,5 +531,9 @@ static THD_FUNCTION(display_process_thread, arg) {
 		serial_display_check_rx();
 		set_assist_level(pas_level); //assert periodically to make sure changes are commited when a new motor config is written
 	}
+}
+
+LUNA_PAS_LEVEL luna_serial_get_pas_level(void){
+	return pas_level;
 }
 #endif
