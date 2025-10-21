@@ -273,7 +273,7 @@
 #define READ_HALL3()			palReadPad(HW_HALL_ENC_GPIO3, HW_HALL_ENC_PIN3)
 
 // Override dead time.
-#define HW_DEAD_TIME_NSEC		460.0
+#define HW_DEAD_TIME_NSEC		230.0
 
 // Setting limits
 #ifdef bbshd_Rev4
