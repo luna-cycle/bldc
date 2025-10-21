@@ -37,8 +37,26 @@
 #define QMLUI_HW_FULLSCREEN
 
 // HW properties
-#define HW_HAS_3_SHUNTS
+#ifdef bbshd_Rev4
+#define HW_HAS_PHASE_FILTERS
+#define HW_PHASE_A_FILTER_GPIO		GPIOC
+#define HW_PHASE_A_FILTER_PIN		13
+#define HW_PHASE_B_FILTER_GPIO		GPIOC
+#define HW_PHASE_B_FILTER_PIN		14
+#define HW_PHASE_C_FILTER_GPIO		GPIOC
+#define HW_PHASE_C_FILTER_PIN		15
+#define PHASE_FILTER_ON()		palClearPad(HW_PHASE_A_FILTER_GPIO, HW_PHASE_A_FILTER_PIN); \
+								palClearPad(HW_PHASE_B_FILTER_GPIO, HW_PHASE_B_FILTER_PIN); \
+								palClearPad(HW_PHASE_C_FILTER_GPIO, HW_PHASE_C_FILTER_PIN)
+#define PHASE_FILTER_OFF()		palSetPad(HW_PHASE_A_FILTER_GPIO, HW_PHASE_A_FILTER_PIN); \
+								palSetPad(HW_PHASE_B_FILTER_GPIO, HW_PHASE_B_FILTER_PIN); \
+								palSetPad(HW_PHASE_C_FILTER_GPIO, HW_PHASE_C_FILTER_PIN)
+#endif
+
+#ifndef bbshd_Rev4
 #define HW_HAS_PHASE_SHUNTS
+#endif
+#define HW_HAS_3_SHUNTS
 #define HW_HAS_GATE_DRIVER_SUPPLY_MONITOR
 #define HW_HAS_WHEEL_SPEED_SENSOR
 #define HW_HAS_LUNA_SERIAL_DISPLAY
@@ -55,13 +73,18 @@
 #define LED_RED_ON()			palSetPad(LED_RED_GPIO, LED_RED_PIN)
 #define LED_RED_OFF()			palClearPad(LED_RED_GPIO, LED_RED_PIN)
 
-#define AUX_GPIO				GPIOC
-#define AUX_PIN					14
+#define AUX_GPIO				GPIOD
+#define AUX_PIN					2
 #define AUX_ON()				palSetPad(AUX_GPIO, AUX_PIN)
 #define AUX_OFF()				palClearPad(AUX_GPIO, AUX_PIN)
 
+#ifdef bbshd_Rev4
+#define CURRENT_FILTER_ON()
+#define CURRENT_FILTER_OFF()
+#else
 #define CURRENT_FILTER_ON()		palSetPad(GPIOC, 13)
 #define CURRENT_FILTER_OFF()	palClearPad(GPIOC, 13)
+#endif
 
 #define BRK_GPIO				GPIOB
 #define BRK_PIN					12
