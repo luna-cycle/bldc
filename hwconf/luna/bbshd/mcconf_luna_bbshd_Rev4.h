@@ -16,10 +16,10 @@
 #define MCCONF_SENSOR_MODE 0
 
 // Motor Current Max
-#define MCCONF_L_CURRENT_MAX 140
+#define MCCONF_L_CURRENT_MAX 160
 
 // Motor Current Max Brake
-#define MCCONF_L_CURRENT_MIN -30
+#define MCCONF_L_CURRENT_MIN -160
 
 // Battery Current Max
 #define MCCONF_L_IN_CURRENT_MAX 70
@@ -34,7 +34,7 @@
 #define MCCONF_L_IN_CURRENT_MAP_FILTER 0.005
 
 // Absolute Maximum Current
-#define MCCONF_L_MAX_ABS_CURRENT 250
+#define MCCONF_L_MAX_ABS_CURRENT 230
 
 // Max ERPM Reverse
 #define MCCONF_L_RPM_MIN -26000
@@ -100,7 +100,7 @@
 #define MCCONF_L_WATT_MIN -1.5e+06
 
 // Max Current Scale
-#define MCCONF_L_CURRENT_MAX_SCALE 1
+#define MCCONF_L_CURRENT_MAX_SCALE 0.1111
 
 // Min Current Scale
 #define MCCONF_L_CURRENT_MIN_SCALE 1
@@ -157,13 +157,13 @@
 #define MCCONF_HALL_ERPM 2000
 
 // Current KP
-#define MCCONF_FOC_CURRENT_KP 0.4816
+#define MCCONF_FOC_CURRENT_KP 0.1437
 
 // Current KI
-#define MCCONF_FOC_CURRENT_KI 100.74
+#define MCCONF_FOC_CURRENT_KI 32.6
 
 // Zero Vector Frequency
-#define MCCONF_FOC_F_ZV 30000
+#define MCCONF_FOC_F_ZV 50000
 
 // Dead Time Compensation
 #define MCCONF_FOC_DT_US 0.12
@@ -187,19 +187,19 @@
 #define MCCONF_FOC_PLL_KI 30000
 
 // Motor Inductance (L)
-#define MCCONF_FOC_MOTOR_L 0.00019264
+#define MCCONF_FOC_MOTOR_L 0.00012374
 
 // Motor Inductance Difference (Lq - Ld)
-#define MCCONF_FOC_MOTOR_LD_LQ_DIFF 0
+#define MCCONF_FOC_MOTOR_LD_LQ_DIFF 3e-05
 
 // Motor Resistance (R)
-#define MCCONF_FOC_MOTOR_R 0.0504
+#define MCCONF_FOC_MOTOR_R 0.0326
 
 // Motor Flux Linkage (?)
-#define MCCONF_FOC_MOTOR_FLUX_LINKAGE 0.016645
+#define MCCONF_FOC_MOTOR_FLUX_LINKAGE 0.020798
 
 // Observer Gain (x1M)
-#define MCCONF_FOC_OBSERVER_GAIN 2.88e+06
+#define MCCONF_FOC_OBSERVER_GAIN 710000
 
 // Observer Gain At Minimum Duty
 #define MCCONF_FOC_OBSERVER_GAIN_SLOW 0.3
@@ -277,10 +277,10 @@
 #define MCCONF_FOC_HALL_INTERP_ERPM 500
 
 // Sensored ERPM Start
-#define MCCONF_FOC_SL_ERPM_START 90000
+#define MCCONF_FOC_SL_ERPM_START 2500
 
 // Sensorless ERPM
-#define MCCONF_FOC_SL_ERPM 100000
+#define MCCONF_FOC_SL_ERPM 8000
 
 // Control Sample Mode
 #define MCCONF_FOC_CONTROL_SAMPLE_MODE 0
@@ -382,7 +382,7 @@
 #define MCCONF_FOC_MTPA_MODE 0
 
 // Field Weakening Current Max
-#define MCCONF_FOC_FW_CURRENT_MAX 25
+#define MCCONF_FOC_FW_CURRENT_MAX 30
 
 // Field Weakening Duty Start
 #define MCCONF_FOC_FW_DUTY_START 0.9
