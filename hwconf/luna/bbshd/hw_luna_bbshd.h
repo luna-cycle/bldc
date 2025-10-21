@@ -105,11 +105,11 @@
 #define ADC_IND_EXT				10
 #define ADC_IND_EXT2			6
 #define ADC_IND_EXT3			13
-#define ADC_IND_TEMP_MOS		15
+#define ADC_IND_TEMP_MOS		16
 #define ADC_IND_TEMP_MOS_2		8
 #define ADC_IND_TEMP_MOS_3		16
 #define ADC_IND_TEMP_MOTOR		9
-#define ADC_IND_VREFINT			16
+#define ADC_IND_VREFINT			15
 
 // ADC macros and settings
 
@@ -150,6 +150,8 @@
 // Voltage on ADC channel
 #define ADC_VOLTS(ch)			((float)ADC_Value[ch] / 4096.0 * V_REG)
 
+//log VRef
+#define NTC_TEMP_MOS1()         ((float)ADC_VOLTS(ADC_IND_VREFINT))
 //log throttle data
 #define NTC_TEMP_MOS2()         ((float)ADC_VOLTS(ADC_IND_EXT))
 // log gate driver supply voltage
